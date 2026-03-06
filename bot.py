@@ -70,8 +70,7 @@ async def ask_gemini(question: str, all_data: dict) -> str:
 أجب بدقة بناءً على البيانات فوق."""
 
     try:
-        response = gemini.models.generate_content(model="gemini-1.5-flash", contents=prompt)
-        return response.text
+response = gemini.models.generate_content(model="gemini-2.0-flash", contents=prompt)        return response.text
     except Exception as e:
         logger.error(f"Gemini error: {e}")
         return "⚠️ حصل خطأ، جرب تاني."
