@@ -67,8 +67,8 @@ async def ask_gemini(question: str, all_data: dict) -> str:
         )
         return response.text
     except Exception as e:
-        logger.error(f"Gemini error: {e}")
-        return "⚠️ حصل خطأ، جرب تاني."
+    logger.error(f"Gemini error: {e}")
+    return f"⚠️ Gemini Error: {str(e)}"
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
