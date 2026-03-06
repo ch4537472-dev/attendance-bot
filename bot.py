@@ -2,7 +2,7 @@ import os
 import logging
 from datetime import datetime
 import httpx
-import google.generativeai as genai
+from google import genai
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram.constants import ChatAction
