@@ -62,13 +62,14 @@ async def ask_gemini(question: str, all_data: dict) -> str:
 
     try:
         response = gemini.models.generate_content(
-            model="gemini-1.5-flash" ,
+            model="gemini-1.5-flash",
             contents=prompt
         )
         return response.text
-   except Exception as e:
-    logger.error(f"Gemini error: {e}")
-    return "⚠️ حصل خطأ، جرب تاني."
+
+    except Exception as e:
+        logger.error(f"Gemini error: {e}")
+        return f"⚠️ Gemini Error: {str(e)}"
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
