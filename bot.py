@@ -53,24 +53,19 @@ async def ask_gemini(question: str, all_data: dict) -> str:
     for name, csv in all_data.items():
         sheets_content += f"\n\n=== تبويب {name} ===\n{csv_summary(csv)}"
 
-    prompt = f"""أنت مساعد ذكي لشيت Excel متكامل فيه بيانات موظفين. رد دايماً بالعربي بشكل مختصر وواضح مع إيموجي.
-
-الشيت فيه 5 تبويبات:
-- employees: بيانات الموظفين
-- salaries: المرتبات
-- attendance: الحضور والغياب
-- leaves: الإجازات
-- managers: المديرين
+    prompt = f"""أنت مساعد ذكي لشيت Excel. رد دايماً بالعربي بشكل مختصر وواضح مع إيموجي.
 
 البيانات (آخر تحديث: {datetime.now().strftime('%Y-%m-%d %H:%M')}):
 {sheets_content}
 
-سؤال المستخدم: {question}
-
-أجب بدقة بناءً على البيانات فوق."""
+سؤال المستخدم: {question}"""
 
     try:
-response = gemini.models.generate_content(model="gemini-2.0-flash", contents=prompt)        return response.text
+        response = gemini.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        return response.text
     except Exception as e:
         logger.error(f"Gemini error: {e}")
         return "⚠️ حصل خطأ، جرب تاني."
@@ -97,8 +92,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def cmd_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_chat_action(ChatAction.TYPING)
     all_data = await fetch_all_sheets()
-    question = "اعمل تقرير شامل ومختصر عن كل التبويبات"
-    answer = await ask_gemini(question, all_data)
+    answer = await ask_gemini("اعمل تقرير شامل ومختصر عن كل التبويبات", all_data)
     await update.message.reply_text(
         f"📊 *تقرير شامل*\n🕐 {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n{answer}",
         parse_mode="Markdown"
