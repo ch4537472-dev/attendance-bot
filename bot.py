@@ -3,15 +3,13 @@ import logging
 from datetime import datetime
 import httpx
 from google import genai
-from google.genai import types
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram.constants import ChatAction
-# ── Logging ──────────────────────────────────────────────
+
 logging.basicConfig(format="%(asctime)s | %(levelname)s | %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ── Config ────────────────────────────────────────────────
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 GEMINI_KEY     = os.environ["GEMINI_API_KEY"]
 SHEET_ID       = os.environ["SHEET_ID"]
@@ -24,7 +22,6 @@ SHEET_CSV_URL = (
 
 gemini = genai.Client(api_key=GEMINI_KEY)
 
-# ── Fetch Sheet ───────────────────────────────────────────
 async def fetch_sheet() -> str:
     try:
         async with httpx.AsyncClient(timeout=15) as client:
@@ -48,7 +45,6 @@ def parse_attendance(csv_text: str) -> dict:
         status_cell = cols[1].strip().strip('"') if len(cols) > 1 else ""
         present = "✔" in status_cell or status_cell.lower() in ("1","true","yes","حاضر","present")
         employees.append({"name": name_cell, "present": present})
-
     total   = len(employees)
     present = sum(1 for e in employees if e["present"])
     absent  = total - present
@@ -59,11 +55,9 @@ def parse_attendance(csv_text: str) -> dict:
         "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
-# ── Ask Gemini ────────────────────────────────────────────
 async def ask_gemini(question: str, att: dict) -> str:
     present_names = [e["name"] for e in att["employees"] if e["present"]]
     absent_names  = [e["name"] for e in att["employees"] if not e["present"]]
-
     prompt = f"""أنت مساعد ذكي لشيت الحضور والغياب. رد دايماً بالعربي بشكل مختصر وواضح مع إيموجي.
 
 📊 بيانات الحضور (تحديث: {att['fetched_at']}):
@@ -72,25 +66,19 @@ async def ask_gemini(question: str, att: dict) -> str:
 - الغائبون: {att['absent']} ({100 - att['pct']}%)
 
 ✅ الحاضرون: {', '.join(present_names) or 'لا يوجد'}
-
 ❌ الغائبون: {', '.join(absent_names) or 'لا يوجد'}
 
 سؤال: {question}"""
-
     try:
-        response = gemini.models.generate_content(
-    model="gemini-1.5-flash", contents=prompt
-)
-return response.text
+        response = gemini.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        return response.text
     except Exception as e:
         logger.error(f"Gemini error: {e}")
         return "⚠️ حصل خطأ، جرب تاني."
 
-# ── Handlers ──────────────────────────────────────────────
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "👋 أهلاً! أنا بوت الحضور والغياب الذكي 📋\n\n"
-        "بقرا الشيت تلقائياً وبرد على أسئلتك!\n\n"
         "الأوامر:\n"
         "📊 /report — تقرير كامل\n"
         "🔄 /refresh — تحديث البيانات\n"
@@ -107,8 +95,7 @@ async def cmd_report(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     att = parse_attendance(csv)
     await update.message.reply_text(
-        f"📊 *تقرير الحضور*\n"
-        f"🕐 {att['fetched_at']}\n\n"
+        f"📊 *تقرير الحضور*\n🕐 {att['fetched_at']}\n\n"
         f"👥 الإجمالي: *{att['total']}* موظف\n"
         f"✅ الحاضرون: *{att['present']}* ({att['pct']}%)\n"
         f"❌ الغائبون: *{att['absent']}* ({100 - att['pct']}%)",
@@ -171,7 +158,6 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     answer = await ask_gemini(question, att)
     await update.message.reply_text(answer)
 
-# ── Main ──────────────────────────────────────────────────
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start",   cmd_start))
