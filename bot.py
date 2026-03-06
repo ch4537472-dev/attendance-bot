@@ -62,7 +62,7 @@ async def ask_gemini(question: str, all_data: dict) -> str:
 
     try:
         response = gemini.models.generate_content(
-            model="gemini-1.5-flash"
+            model="gemini-1.5-flash" ,
             contents=prompt
         )
         return response.text
