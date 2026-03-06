@@ -24,7 +24,7 @@ gemini = genai.Client(api_key=GEMINI_KEY)
 
 async def fetch_sheet() -> str:
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
             r = await client.get(SHEET_CSV_URL)
             r.raise_for_status()
             return r.text
