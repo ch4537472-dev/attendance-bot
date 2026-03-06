@@ -22,8 +22,7 @@ SHEET_CSV_URL = (
     f"/export?format=csv&gid={SHEET_GID}"
 )
 
-genai.configure(api_key=GEMINI_KEY)
-gemini = genai.GenerativeModel("gemini-1.5-flash")
+gemini = genai.Client(api_key=GEMINI_KEY)
 
 # ── Fetch Sheet ───────────────────────────────────────────
 async def fetch_sheet() -> str:
@@ -79,8 +78,10 @@ async def ask_gemini(question: str, att: dict) -> str:
 سؤال: {question}"""
 
     try:
-        response = gemini.generate_content(prompt)
-        return response.text
+        response = gemini.models.generate_content(
+    model="gemini-1.5-flash", contents=prompt
+)
+return response.text
     except Exception as e:
         logger.error(f"Gemini error: {e}")
         return "⚠️ حصل خطأ، جرب تاني."
